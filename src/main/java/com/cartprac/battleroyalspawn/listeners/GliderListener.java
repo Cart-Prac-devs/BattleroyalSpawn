@@ -18,10 +18,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
 
-/**
- * Keeps the glider where it is: no clicking, dragging, dropping, hand-swapping or right-click armor swapping,
- * no firework boosting, and correct drops on death.
- */
+// keeps the elytra on: no clicking/dragging/dropping/swapping it, no rockets, sort out drops on death
 public final class GliderListener implements Listener {
 
     private final CartDrop plugin;
@@ -93,7 +90,7 @@ public final class GliderListener implements Listener {
         boolean rocket = type == Material.FIREWORK_ROCKET;
         boolean chestArmor = type == Material.ELYTRA || type.name().endsWith("_CHESTPLATE");
         if (rocket || chestArmor) {
-            // No boosting across the map, and no right-click armor swap that would take the glider off.
+            // no rocket boosting, and no right-click armor swap that takes the glider off
             event.setUseItemInHand(Event.Result.DENY);
             event.setCancelled(true);
         }

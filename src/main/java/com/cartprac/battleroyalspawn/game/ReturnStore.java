@@ -14,11 +14,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
-/**
- * Return locations for players who disconnected mid-match. A player who quits while on the cart or gliding
- * cannot be safely teleported across worlds during the quit event, so they are sent back when they next log in.
- * Persisted to {@code returns.yml} so a server restart in between still returns them.
- */
+// people who logged out mid round get teleported back when they come back. can't cross-world tp in the
+// quit event. saved to returns.yml so it survives a restart
 public final class ReturnStore {
 
     private record Entry(String world, double x, double y, double z, float yaw, float pitch) {
@@ -92,7 +89,6 @@ public final class ReturnStore {
         return pending.containsKey(uuid);
     }
 
-    /** Removes and returns the pending location (null if none, or if its world is not loaded). */
     public Location take(UUID uuid) {
         Entry e = pending.remove(uuid);
         if (e == null) {

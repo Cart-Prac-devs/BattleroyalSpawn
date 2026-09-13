@@ -22,20 +22,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-/**
- * Typed, validated view of config.yml. Every value is checked on construction; invalid values are logged
- * as warnings in the form {@code config.yml: <path> must be <rule>, got <value>. Using default <default>.}
- * and replaced by the default, so constructing this class never throws.
- */
+// config.yml as fields. bad values -> warning + default, never throws
 public final class Settings {
 
-    /** Where players are sent when they leave the arena. */
     public enum ReturnMode { PREVIOUS, LOCATION }
 
-    /** How a seated player triggers the jump. */
     public enum JumpKey { SNEAK, RIGHT_CLICK, JUMP }
 
-    /** Boss bar appearance for one phase. */
     public static final class BarSpec {
         public final String title;
         public final BarColor color;
@@ -48,7 +41,6 @@ public final class Settings {
         }
     }
 
-    /** A particle burst. */
     public static final class ParticleSpec {
         public final Particle particle;
         public final int count;
@@ -145,7 +137,7 @@ public final class Settings {
         this.c = config;
         this.log = log;
 
-        // ---- queue ----
+        // queue
         int min = intAt("queue.min-players", 2, 1, 1000);
         int max = intAt("queue.max-players", 60, 1, 1000);
         if (max < min) {
@@ -174,7 +166,7 @@ public final class Settings {
         returnYaw = (float) dbl("queue.return-location.yaw", 0.0, -360, 360);
         returnPitch = (float) dbl("queue.return-location.pitch", 0.0, -90, 90);
 
-        // ---- map ----
+        // map
         mapWorld = str("map.world", "arena");
         double ax = dbl("map.point-a.x", -400, -3.0e7, 3.0e7);
         double az = dbl("map.point-a.z", -400, -3.0e7, 3.0e7);
@@ -195,13 +187,13 @@ public final class Settings {
         radius = dbl("map.radius", 500, 16, 1.0e6);
         altitude = intAt("map.altitude", 180, -64, 4096);
 
-        // ---- bus ----
+        // bus
         speed = dbl("bus.speed", 0.6, 0.01, 20);
         doorOpenAfterSeconds = dbl("bus.door-open-after-seconds", 3, 0, 600);
         doorCloseAt = dbl("bus.door-close-at", 0.9, 0.1, 1.0);
         JumpKey key = enumAt("bus.jump-key", JumpKey.class, JumpKey.SNEAK);
         if (key == JumpKey.JUMP) {
-            // Spigot exposes no input packets for seated players; Paper's PlayerInputEvent would be needed.
+            // no input packet events on spigot, would need paper's PlayerInputEvent
             warn("bus.jump-key", "JUMP cannot be detected on Spigot (requires Paper PlayerInputEvent)", key, JumpKey.SNEAK);
             key = JumpKey.SNEAK;
         }
@@ -220,7 +212,7 @@ public final class Settings {
         trailParticle = particle("bus.trail.particle", Particle.CLOUD);
         trailCount = intAt("bus.trail.count", 3, 0, 100);
 
-        // ---- drop ----
+        // drop
         maxDropSeconds = intAt("drop.max-drop-seconds", 60, 5, 3600);
         landingConfirmTicks = intAt("drop.landing-confirm-ticks", 5, 1, 200);
         graceSeconds = intAt("drop.grace-seconds", 3, 0, 600);
@@ -228,7 +220,7 @@ public final class Settings {
         glideCapEnabled = bool("drop.glide-speed-cap.enabled", false);
         glideCapMax = dbl("drop.glide-speed-cap.max-horizontal", 1.6, 0.1, 20);
 
-        // ---- hud ----
+        // hud
         barCountdown = bar("hud.boss-bar.countdown", "&eBattle Royale starts in &f{seconds}s", BarColor.YELLOW, BarStyle.SOLID);
         barBus = bar("hud.boss-bar.bus", "&6Forced drop in &f{seconds}s", BarColor.RED, BarStyle.SEGMENTED_10);
         barDrop = bar("hud.boss-bar.drop", "&a{landed}&7/&a{total} &7landed", BarColor.GREEN, BarStyle.SOLID);
@@ -239,7 +231,7 @@ public final class Settings {
         jumpParticles = particles("hud.particles.jump", Particle.CLOUD, 20);
         landingParticles = particles("hud.particles.landing", Particle.POOF, 15);
 
-        // ---- sounds ----
+        // sounds
         soundQueueJoin = sound("sounds.queue-join", "BLOCK_NOTE_BLOCK_PLING");
         soundCountdownTick = sound("sounds.countdown-tick", "BLOCK_NOTE_BLOCK_HAT");
         soundCountdownFinal = sound("sounds.countdown-final", "BLOCK_NOTE_BLOCK_BELL");
@@ -251,12 +243,10 @@ public final class Settings {
         soundForcedDrop = sound("sounds.forced-drop", "ENTITY_GENERIC_EXPLODE");
     }
 
-    /** Warnings produced while loading, in order. */
     public List<String> warnings() {
         return Collections.unmodifiableList(warnings);
     }
 
-    /** The configured fixed return location, or {@code null} if its world is not loaded. */
     public Location configuredReturnLocation() {
         World world = Bukkit.getWorld(returnWorld);
         if (world == null) {
@@ -265,12 +255,9 @@ public final class Settings {
         return new Location(world, returnX, returnY, returnZ, returnYaw, returnPitch);
     }
 
-    /** Ticks after departure before jumping is allowed. */
     public int doorOpenAfterTicks() {
         return (int) Math.round(doorOpenAfterSeconds * 20.0);
     }
-
-    // ------------------------------------------------------------------ helpers
 
     private void warn(String path, String rule, Object got, Object def) {
         String message = "config.yml: " + path + " " + rule + ", got " + got + ". Using default " + def + ".";

@@ -8,10 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDismountEvent;
 
-/**
- * Every way a player can leave a seat (sneak, teleport, seat removed, plugin eject) ends up here.
- * The game decides: keep them seated while the doors are closed, otherwise it is a jump.
- */
+// every way of leaving a seat ends up here (sneak, tp, seat removed, plugin eject)
 public final class DismountListener implements Listener {
 
     private final CartDrop plugin;

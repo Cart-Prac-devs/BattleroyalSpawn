@@ -15,13 +15,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-/**
- * Per-tick logic for one gliding player: auto-glide, optional speed cap, void guard, landing confirmation
- * and the max-drop-seconds safety net.
- */
+// per tick stuff for someone who's gliding
 public final class LandingDetector {
 
-    /** What the game does when a player is done dropping. */
     public interface Callback {
         void landed(PlayerSession session, Player player, boolean safetyNet);
 
@@ -40,7 +36,7 @@ public final class LandingDetector {
         Location loc = p.getLocation();
         s.airtimeTicks++;
 
-        // Void guard: lift them back to altitude once; a second fall means the column really is void.
+        // fell out of the world -> lift them up once, second time just put them down somewhere
         if (loc.getY() < world.getMinHeight()) {
             if (!s.voidRescued) {
                 s.voidRescued = true;
@@ -77,7 +73,7 @@ public final class LandingDetector {
                 s.gliderStarted = true;
                 plugin.game().hud().sound(p, cfg.soundGlideStart);
             }
-            // Velocity clamping in the glide loop can feel rubbery; it is off by default and meant for tuning.
+            // speed cap, off by default. clamping velocity every tick feels rubbery, tune before enabling
             if (cfg.glideCapEnabled && p.isGliding()) {
                 Vector v = p.getVelocity();
                 double horizontal = Math.hypot(v.getX(), v.getZ());
@@ -102,12 +98,11 @@ public final class LandingDetector {
         }
     }
 
-    /** On the ground, in water, or caught in leaves/cobweb/climbables, and no longer gliding. */
     public static boolean isGrounded(Player p, Location loc) {
         if (p.isGliding()) {
             return false;
         }
-        // Player#isOnGround is deprecated as client-reported; the block checks below back it up.
+        // isOnGround is client side, so also check the blocks below
         if (((Entity) p).isOnGround() || p.isInWater()) {
             return true;
         }

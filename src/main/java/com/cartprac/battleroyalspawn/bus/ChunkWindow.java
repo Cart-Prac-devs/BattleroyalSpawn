@@ -8,11 +8,8 @@ import org.bukkit.util.Vector;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Keeps a small window of chunks loaded around and ahead of the cart using plugin chunk tickets.
- * Tickets are owned by the plugin, so {@link World#removePluginChunkTickets(Plugin)} can never leave one behind.
- * The window is only recomputed when the cart crosses into a new chunk.
- */
+// keeps a few chunks in front of the cart loaded with plugin chunk tickets. only recalculated when the
+// cart enters a new chunk
 public final class ChunkWindow {
 
     private final Plugin plugin;
@@ -28,7 +25,6 @@ public final class ChunkWindow {
         this.plugin = plugin;
     }
 
-    /** Starts a new window and synchronously loads its initial chunks. */
     public void begin(World world, Vector position, Vector direction, int ahead, int behind) {
         release();
         this.world = world;
@@ -37,7 +33,6 @@ public final class ChunkWindow {
         update(position, direction, true);
     }
 
-    /** Slides the window along the path; cheap when the cart is still in the same chunk. */
     public void update(Vector position, Vector direction) {
         update(position, direction, false);
     }
@@ -84,7 +79,6 @@ public final class ChunkWindow {
         });
     }
 
-    /** Drops every ticket this window holds. Safe to call repeatedly. */
     public void release() {
         if (world != null) {
             world.removePluginChunkTickets(plugin);

@@ -12,10 +12,6 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
 
-/**
- * Cart entities never survive a chunk unload, a world unload ends the match, and teleports by other plugins
- * are treated as leaving the cart.
- */
 public final class WorldListener implements Listener {
 
     private final CartDrop plugin;

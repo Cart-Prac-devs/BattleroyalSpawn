@@ -1,12 +1,6 @@
-# =====================================================================
-#  CartDrop  -  battle-royale queue, flying battle cart and drop phase
-#  Spigot 1.21.11
-#
-#  Every value is validated on startup and on /br reload. An invalid
-#  value is reported in the console and replaced by its default; the
-#  plugin never fails to start because of this file.
-#  Colour codes use & (for example &a, &l). Placeholders are {name}.
-# =====================================================================
+# CartDrop config
+# Bad values get logged on startup / /br reload and fall back to defaults.
+# Colours use & codes, placeholders look like {name}.
 
 queue:
   # Players needed in the queue before the start countdown begins.

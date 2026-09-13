@@ -5,10 +5,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.logging.Level;
 
-/**
- * The single 1-tick scheduler task. All per-tick work goes through {@link GameManager#tick()}; a thrown
- * exception is logged once and then muted for five seconds so a bug cannot flood the console.
- */
+// the one repeating task. exceptions get logged once then muted for 5s so the console doesn't explode
 public final class GameLoop extends BukkitRunnable {
 
     private final CartDrop plugin;

@@ -7,10 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
-/**
- * Access to the {@code messages:} section of config.yml. Missing keys fall back to the defaults bundled
- * in the jar (Bukkit merges them automatically); a key missing from both is reported once.
- */
+// messages: section. missing keys fall back to the jar defaults, bukkit merges those for us
 public final class Messages {
 
     private final FileConfiguration config;
@@ -24,7 +21,6 @@ public final class Messages {
         this.prefix = Text.color(raw("prefix"));
     }
 
-    /** Raw, uncoloured template for a key. */
     public String raw(String key) {
         String value = config.getString("messages." + key);
         if (value == null) {
@@ -36,17 +32,14 @@ public final class Messages {
         return value;
     }
 
-    /** Coloured message with prefix and placeholders filled. */
     public String get(String key, Object... kv) {
         return prefix + Text.color(Text.fill(raw(key), kv));
     }
 
-    /** Coloured message without prefix (titles, action bars, boss bars). */
     public String plain(String key, Object... kv) {
         return Text.color(Text.fill(raw(key), kv));
     }
 
-    /** The coloured prefix. */
     public String prefix() {
         return prefix;
     }

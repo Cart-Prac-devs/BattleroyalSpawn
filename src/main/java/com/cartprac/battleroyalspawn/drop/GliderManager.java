@@ -12,9 +12,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
-/**
- * Creates, identifies, equips and removes the drop glider (an unbreakable elytra tagged {@code cartdrop:glider}).
- */
+// the elytra. unbreakable + pdc tag so we can find it again
 public final class GliderManager {
 
     private final NamespacedKey key;
@@ -23,7 +21,6 @@ public final class GliderManager {
         this.key = new NamespacedKey(plugin, "glider");
     }
 
-    /** A fresh glider item. */
     public ItemStack create() {
         ItemStack item = new ItemStack(Material.ELYTRA);
         ItemMeta meta = item.getItemMeta();
@@ -37,7 +34,6 @@ public final class GliderManager {
         return item;
     }
 
-    /** True if the stack is a CartDrop glider. */
     public boolean isGlider(ItemStack item) {
         if (item == null || item.getType() != Material.ELYTRA || !item.hasItemMeta()) {
             return false;
@@ -50,7 +46,6 @@ public final class GliderManager {
         return isGlider(player.getInventory().getChestplate());
     }
 
-    /** Saves the chest slot into the session and puts the glider on. */
     public void equip(Player player, PlayerSession session) {
         if (session.gliderEquipped) {
             return;
@@ -61,7 +56,6 @@ public final class GliderManager {
         player.getInventory().setChestplate(create());
     }
 
-    /** Removes every glider from the player and puts the saved chest item back exactly as it was. */
     public void restore(Player player, PlayerSession session) {
         if (!session.gliderEquipped) {
             return;
@@ -72,7 +66,6 @@ public final class GliderManager {
         session.gliderEquipped = false;
     }
 
-    /** Removes glider items anywhere in the inventory (used for orphan cleanup). Returns how many were removed. */
     public int stripAny(Player player) {
         PlayerInventory inv = player.getInventory();
         int removed = 0;

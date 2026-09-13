@@ -19,9 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * {@code /battleroyale} ({@code /br}) with tab completion for every argument.
- */
 public final class BrCommand implements TabExecutor {
 
     private static final String PERM_PLAY = "cartdrop.play";

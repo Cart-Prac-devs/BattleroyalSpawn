@@ -18,11 +18,8 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * The visible cart: display entities that all sit at the cart origin and carry their own local offset in
- * their transformation. With billboard FIXED the client applies the entity yaw before the transformation,
- * so teleporting every part to the same origin (with the path yaw) rotates the whole rig as one piece.
- */
+// the visible cart. every display sits at the cart origin and has its offset baked into the transformation,
+// so teleporting all of them to the same spot with the path yaw rotates the whole thing together
 public final class BusRig {
 
     private final CartDrop plugin;
@@ -41,7 +38,6 @@ public final class BusRig {
         return parts.size();
     }
 
-    /** Spawns every part at the origin. Any previous rig is removed first. */
     public void spawn(Location origin) {
         despawn();
         world = origin.getWorld();
@@ -75,7 +71,7 @@ public final class BusRig {
         return world.spawn(origin, BlockDisplay.class, d -> {
             common(d);
             d.setBlock(part.block.createBlockData());
-            // A block model spans 0..1 from its corner; shift so `offset` is the centre of the bottom face.
+            // block models go 0..1 from the corner, shift so offset = centre of the bottom face
             Vector3f translation = new Vector3f(
                     (float) (part.offset.getX() - part.size.getX() / 2.0),
                     (float) part.offset.getY(),
@@ -91,7 +87,7 @@ public final class BusRig {
     private void common(Display d) {
         d.setPersistent(false);
         d.setBillboard(Display.Billboard.FIXED);
-        // One-tick teleport interpolation: the client slides the part to each new position instead of snapping.
+        // 1 tick lerp so it doesn't stutter
         d.setTeleportDuration(1);
         d.setInterpolationDuration(0);
         d.setInterpolationDelay(0);
@@ -101,7 +97,6 @@ public final class BusRig {
         d.addScoreboardTag(Tags.BUS);
     }
 
-    /** Teleports every part to the new origin (same yaw for all). */
     public void move(Location origin) {
         for (Display d : parts) {
             if (d.isValid()) {
@@ -110,7 +105,6 @@ public final class BusRig {
         }
     }
 
-    /** Particle puff a few blocks behind the cart. */
     public void trail(Location origin, Vector direction) {
         Settings s = plugin.settings();
         if (!s.trailEnabled || s.trailCount <= 0 || world == null) {
@@ -120,7 +114,6 @@ public final class BusRig {
         world.spawnParticle(s.trailParticle, behind, s.trailCount, 0.8, 0.3, 0.8, 0.01);
     }
 
-    /** Removes every part. Safe to call when nothing is spawned. */
     public void despawn() {
         for (Display d : parts) {
             if (d.isValid()) {

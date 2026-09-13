@@ -7,13 +7,9 @@ import org.bukkit.util.Vector;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Data-driven description of the visible cart: one optional scaled item, one optional banner item and any
- * number of block boxes. All offsets are in cart-local coordinates (x sideways, y up, z forward).
- */
+// what the cart looks like, from bus.rig in the config. offsets are cart-local (x sideways, y up, z forward)
 public final class RigSpec {
 
-    /** One ItemDisplay part. */
     public static final class ItemPart {
         public final boolean enabled;
         public final Material item;
@@ -33,7 +29,6 @@ public final class RigSpec {
         }
     }
 
-    /** One BlockDisplay box. {@code offset} is the centre of the bottom face. */
     public static final class BlockPart {
         public final Material block;
         public final Vector offset;
@@ -56,7 +51,6 @@ public final class RigSpec {
         this.blocks = Collections.unmodifiableList(blocks);
     }
 
-    /** Number of display entities this rig spawns. */
     public int partCount() {
         return blocks.size() + (cart.enabled ? 1 : 0) + (banner.enabled ? 1 : 0);
     }

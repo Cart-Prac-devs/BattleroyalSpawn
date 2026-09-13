@@ -11,10 +11,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 
-/**
- * No fall/void/wall damage while dropping, no damage at all while seated, and two-way protection
- * during the post-landing grace period.
- */
+// no fall/void/wall damage while dropping, nothing at all while seated, grace after landing goes both ways
 public final class DamageListener implements Listener {
 
     private final CartDrop plugin;
@@ -35,7 +32,7 @@ public final class DamageListener implements Listener {
         }
         if (session.isManaged()) {
             if (session.isOnCart()) {
-                event.setCancelled(true); // a seated player cannot defend themselves
+                event.setCancelled(true); // can't fight back while sitting
                 return;
             }
             switch (event.getCause()) {
@@ -62,7 +59,7 @@ public final class DamageListener implements Listener {
         }
         Player attacker = attackerOf(event.getDamager());
         if (attacker != null && plugin.game().isGraced(attacker.getUniqueId())) {
-            event.setCancelled(true); // grace is no-PvP in both directions
+            event.setCancelled(true);
         }
     }
 

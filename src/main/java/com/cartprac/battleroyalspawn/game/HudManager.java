@@ -15,9 +15,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * One shared boss bar (re-styled per phase), plus action bar, title, sound and particle helpers.
- */
+// one bossbar reused for every phase + small helpers for titles/sounds/particles
 public final class HudManager {
 
     private final CartDrop plugin;
@@ -29,7 +27,6 @@ public final class HudManager {
         this.plugin = plugin;
     }
 
-    /** Shows (or updates) the boss bar for exactly the given players. */
     public void show(Settings.BarSpec spec, String titleColored, double progress, Collection<? extends Player> players) {
         if (bar == null) {
             bar = Bukkit.createBossBar("", spec.color, spec.style);
@@ -59,7 +56,6 @@ public final class HudManager {
         });
     }
 
-    /** Hides the bar from everyone. */
     public void hide() {
         if (bar != null) {
             bar.removeAll();
@@ -69,7 +65,6 @@ public final class HudManager {
         wanted.clear();
     }
 
-    /** Hides and forgets the bar entirely (plugin disable). */
     public void destroy() {
         hide();
         bar = null;

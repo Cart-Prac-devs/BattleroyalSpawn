@@ -42,10 +42,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * The state machine: queue, countdown, cart flight, per-player drop and cleanup. Everything that touches
- * players or entities goes through here so there is exactly one place that knows the current state.
- */
+// the whole round lives here: queue -> countdown -> bus -> drop -> live -> reset
 public final class GameManager {
 
     private final CartDrop plugin;
@@ -98,8 +95,6 @@ public final class GameManager {
         this.glider = new GliderManager(plugin);
         this.landing = new LandingDetector(plugin);
     }
-
-    // ------------------------------------------------------------------ accessors
 
     public GameState state() {
         return state;
@@ -177,7 +172,6 @@ public final class GameManager {
         return s != null && s.isManaged();
     }
 
-    /** Online players currently in the queue. */
     public List<Player> queuedPlayers() {
         List<Player> out = new ArrayList<>(queue.size());
         for (UUID uuid : queue) {
@@ -189,7 +183,6 @@ public final class GameManager {
         return out;
     }
 
-    /** Online players in the current match. */
     public List<Player> participants() {
         List<Player> out = new ArrayList<>(sessions.size());
         for (PlayerSession s : sessions.values()) {
@@ -201,9 +194,6 @@ public final class GameManager {
         return out;
     }
 
-    // ------------------------------------------------------------------ queue
-
-    /** Adds the player to the queue (the clickable chat message runs this). */
     public void join(Player p) {
         Settings cfg = plugin.settings();
         Messages m = plugin.messages();
@@ -228,12 +218,7 @@ public final class GameManager {
         }
     }
 
-    /**
-     * Leaves the queue, or the match. A seated player jumps instead (if the doors are open); a gliding or
-     * landed player is returned to their return location.
-     *
-     * @return false if the player was neither queued nor in a match
-     */
+    // seated + doors open = jump, otherwise you get sent back
     public boolean leave(Player p) {
         Messages m = plugin.messages();
         UUID uuid = p.getUniqueId();
@@ -257,7 +242,6 @@ public final class GameManager {
         return true;
     }
 
-    /** Sends the clickable queue message to every target that can and has not yet joined. Returns how many. */
     public int announce(Collection<? extends Player> targets) {
         Settings cfg = plugin.settings();
         Messages m = plugin.messages();
@@ -280,20 +264,13 @@ public final class GameManager {
         queue.removeIf(uuid -> Bukkit.getPlayer(uuid) == null);
     }
 
-    // ------------------------------------------------------------------ countdown
-
     private void maybeStartCountdown() {
         if (state == GameState.IDLE && queue.size() >= plugin.settings().minPlayers) {
             startCountdown(false);
         }
     }
 
-    /**
-     * Starts the countdown. With {@code force} the minimum player check is skipped, and a running
-     * countdown is skipped to zero.
-     *
-     * @return true if the countdown is now running or was skipped
-     */
+    // force = ignore min players, or skip a running countdown to 0
     public boolean startCountdown(boolean force) {
         Settings cfg = plugin.settings();
         if (state == GameState.COUNTDOWN) {
@@ -378,8 +355,6 @@ public final class GameManager {
         countdownTicksLeft--;
     }
 
-    // ------------------------------------------------------------------ departure
-
     private void depart() {
         Settings cfg = plugin.settings();
         Messages m = plugin.messages();
@@ -451,9 +426,6 @@ public final class GameManager {
         Bukkit.getPluginManager().callEvent(new BusDepartEvent(path, players));
     }
 
-    // ------------------------------------------------------------------ tick
-
-    /** Called once per server tick by {@link GameLoop}. */
     public void tick() {
         tick++;
         switch (state) {
@@ -655,8 +627,6 @@ public final class GameManager {
         log.info("Everyone has landed: LIVE. CartDrop is no longer managing players.");
     }
 
-    // ------------------------------------------------------------------ HUD
-
     private int secondsUntilDoors() {
         int left = plugin.settings().doorOpenAfterTicks() - (tick - departTick);
         return Math.max(0, (int) Math.ceil(left / 20.0));
@@ -722,9 +692,6 @@ public final class GameManager {
         hud.actionBar(p, plugin.messages().plain("drop-actionbar", "altitude", altitude, "distance", distance));
     }
 
-    // ------------------------------------------------------------------ jump
-
-    /** Ejects a seated player. Forced jumps ignore closed doors and event cancellation. */
     public boolean requestJump(Player p, boolean forced) {
         PlayerSession s = sessions.get(p.getUniqueId());
         return s != null && requestJump(p, s, forced);
@@ -771,7 +738,6 @@ public final class GameManager {
         return true;
     }
 
-    /** Forces every seated player off the cart. Returns how many jumped. */
     public int forceJumpAll() {
         int count = 0;
         scratch.clear();
@@ -785,11 +751,7 @@ public final class GameManager {
         return count;
     }
 
-    /**
-     * Called by the dismount listener whenever a player is about to leave a seat entity.
-     *
-     * @return true to cancel the dismount and keep the player seated
-     */
+    // from DismountListener. true = cancel the dismount, keep them seated
     public boolean onDismountAttempt(Player p) {
         PlayerSession s = sessions.get(p.getUniqueId());
         if (s == null || s.phase != Phase.ABOARD || state != GameState.BUS) {
@@ -805,8 +767,6 @@ public final class GameManager {
         }
         return !requestJump(p, s, false);
     }
-
-    // ------------------------------------------------------------------ landing
 
     void land(PlayerSession s, Player p, boolean safetyNet) {
         if (s.phase != Phase.DROPPING) {
@@ -829,8 +789,6 @@ public final class GameManager {
         }
         Bukkit.getPluginManager().callEvent(new PlayerLandEvent(p, p.getLocation(), s.airtimeTicks, safetyNet));
     }
-
-    // ------------------------------------------------------------------ leaving the match
 
     private void markOut(PlayerSession s, Player p, String reason) {
         seats.remove(s);
@@ -857,7 +815,6 @@ public final class GameManager {
         }
     }
 
-    /** Player disconnected: clean up now, send them back when they next log in. */
     public void handleQuit(Player p) {
         UUID uuid = p.getUniqueId();
         queue.remove(uuid);
@@ -872,7 +829,6 @@ public final class GameManager {
         }
     }
 
-    /** Player logged in: return them if they disconnected mid-match. */
     public void handleJoin(Player p) {
         if (plugin.returns().has(p.getUniqueId())) {
             Location loc = plugin.returns().take(p.getUniqueId());
@@ -883,7 +839,6 @@ public final class GameManager {
         }
     }
 
-    /** Player died mid-drop: keep the glider out of the drops and put the real chest item there instead. */
     public void handleDeath(Player p, PlayerDeathEvent event) {
         PlayerSession s = sessions.get(p.getUniqueId());
         if (s == null || !s.isManaged()) {
@@ -908,7 +863,6 @@ public final class GameManager {
         log.info(s.name + " died mid-drop");
     }
 
-    /** Another plugin teleported a managed player. */
     public void handleTeleport(Player p, PlayerTeleportEvent event) {
         if (internalTeleport) {
             return;
@@ -930,7 +884,6 @@ public final class GameManager {
         }
     }
 
-    /** Teleports without triggering our own teleport handling. */
     public void teleportInternal(Player p, Location loc) {
         if (loc == null) {
             return;
@@ -958,8 +911,6 @@ public final class GameManager {
         return loc;
     }
 
-    // ------------------------------------------------------------------ state, stop, reset
-
     private boolean setState(GameState next, boolean honourCancel) {
         if (next == state) {
             return true;
@@ -975,12 +926,7 @@ public final class GameManager {
         return true;
     }
 
-    /**
-     * Ends whatever is running: removes cart entities and chunk tickets, restores gliders, optionally returns
-     * players, and goes back to IDLE. The queue is kept.
-     *
-     * @return false if nothing was running
-     */
+    // end the round, clean up, back to IDLE. queue stays. false if nothing was running
     public boolean stop(String reason, boolean returnPlayers) {
         if (state == GameState.IDLE) {
             return false;
@@ -1022,11 +968,8 @@ public final class GameManager {
         return true;
     }
 
-    /**
-     * Leaves the server exactly as CartDrop found it: stops any match, then sweeps every world for tagged
-     * entities and chunk tickets, strips leftover gliders from online players and drops the boss bar.
-     * Used on enable (orphans from a crash), on disable and on {@code /reload}.
-     */
+    // stop() + sweep every world for our tagged entities / chunk tickets / leftover elytras.
+    // runs on enable (crash leftovers), disable and /reload
     public void hardReset(String reason) {
         try {
             stop(reason, true);
@@ -1063,7 +1006,6 @@ public final class GameManager {
         state = GameState.IDLE;
     }
 
-    /** Lines for {@code /br state}. */
     public List<String> debugReport() {
         List<String> out = new ArrayList<>();
         out.add("state=" + state + " tick=" + tick + " doorsOpen=" + doorsOpen);

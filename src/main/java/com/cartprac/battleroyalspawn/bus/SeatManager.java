@@ -10,13 +10,9 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-/**
- * One invisible armor stand per player, laid out in rows inside the cart and dragged along every tick.
- * <p>
- * Seats are moved by setting their velocity to the exact delta to their target, which self-corrects drift.
- * Spigot's {@code Entity#teleport} silently refuses entities that have passengers, so teleporting a
- * mounted seat is not an option here (Paper offers {@code TeleportFlag.EntityState.RETAIN_PASSENGERS}).
- */
+// one invisible armor stand per player, dragged along every tick with velocity.
+// can't teleport them: spigot's Entity#teleport returns false if the entity has a passenger
+// (paper has TeleportFlag.EntityState.RETAIN_PASSENGERS for this)
 public final class SeatManager {
 
     private final CartDrop plugin;
@@ -25,7 +21,6 @@ public final class SeatManager {
         this.plugin = plugin;
     }
 
-    /** Cart-local offset of seat {@code index} when {@code total} seats are laid out. */
     public Vector localOffset(int index, int total) {
         Settings s = plugin.settings();
         int perRow = s.seatsPerRow;
@@ -38,7 +33,6 @@ public final class SeatManager {
         return new Vector(x, s.seatYOffset, z);
     }
 
-    /** World position of seat {@code index} for a cart at {@code origin}. */
     public Location target(Location origin, int index, int total) {
         Vector off = LocationUtil.rotateYaw(localOffset(index, total), origin.getYaw());
         return new Location(origin.getWorld(),
@@ -46,15 +40,13 @@ public final class SeatManager {
                 origin.getYaw(), 0f);
     }
 
-    /** Spawns a seat entity at the given location. */
     public ArmorStand spawn(Location at) {
         return at.getWorld().spawn(at, ArmorStand.class, stand -> {
             stand.setInvisible(true);
             stand.setSmall(true);
             stand.setBasePlate(false);
             stand.setArms(false);
-            // Marker must stay OFF and gravity ON: an armor stand with either set skips its physics tick and
-            // ignores velocity entirely, and velocity is the only Spigot-safe way to move a mounted seat.
+            // marker off + gravity on or the stand ignores velocity completely (ArmorStand#hasPhysics)
             stand.setMarker(false);
             stand.setGravity(true);
             stand.setInvulnerable(true);
@@ -67,12 +59,10 @@ public final class SeatManager {
         });
     }
 
-    /** Mounts the player. Returns false if the server refused (different world, dead player, ...). */
     public boolean mount(ArmorStand seat, Player player) {
         return seat.addPassenger(player);
     }
 
-    /** Drags the seat to its target this tick. */
     public void move(ArmorStand seat, Location target) {
         Location current = seat.getLocation();
         seat.setVelocity(new Vector(
@@ -81,7 +71,6 @@ public final class SeatManager {
                 target.getZ() - current.getZ()));
     }
 
-    /** Removes the session's seat entity immediately and clears the reference. */
     public void remove(PlayerSession session) {
         ArmorStand seat = session.seat;
         session.seat = null;

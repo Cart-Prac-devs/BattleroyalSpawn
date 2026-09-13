@@ -9,9 +9,7 @@ import org.bukkit.util.Vector;
 import java.util.Locale;
 import java.util.Random;
 
-/**
- * A straight flight line at a fixed altitude, advanced by a fixed number of blocks per tick.
- */
+// straight line A -> B at a fixed height
 public final class FlightPath {
 
     private final World world;
@@ -34,7 +32,6 @@ public final class FlightPath {
         this.yaw = LocationUtil.yawOf(direction);
     }
 
-    /** Builds this match's path from config, picking a random bearing if enabled. */
     public static FlightPath build(Settings s, World world, Random random) {
         int altitude = clampAltitude(s.altitude, world);
         Vector a;
@@ -52,28 +49,23 @@ public final class FlightPath {
         return new FlightPath(world, a, b, s.speed);
     }
 
-    /** Keeps the altitude inside the world's build limits with some headroom. */
     public static int clampAltitude(int altitude, World world) {
         return Math.max(world.getMinHeight() + 16, Math.min(altitude, world.getMaxHeight() - 10));
     }
 
-    /** Moves the cart one tick along the line. */
     public void advance() {
         progress = Math.min(length, progress + speed);
     }
 
-    /** Current cart position. */
     public Vector position() {
         return start.clone().add(direction.clone().multiply(progress));
     }
 
-    /** Current cart position as a location facing the travel direction. */
     public Location location() {
         Vector p = position();
         return new Location(world, p.getX(), p.getY(), p.getZ(), yaw, 0f);
     }
 
-    /** 0.0 at the start, 1.0 at the end. */
     public double fraction() {
         return length <= 0 ? 1.0 : progress / length;
     }
@@ -82,7 +74,6 @@ public final class FlightPath {
         return progress >= length;
     }
 
-    /** Ticks until the cart reaches the given fraction of the path (0 if already past). */
     public double ticksUntil(double fraction) {
         double remaining = fraction * length - progress;
         return remaining <= 0 ? 0 : remaining / speed;
@@ -120,7 +111,6 @@ public final class FlightPath {
         return speed;
     }
 
-    /** One-line description for logs and {@code /br state}. */
     public String describe() {
         return String.format(Locale.ROOT, "%s (%.0f, %.0f) -> (%.0f, %.0f) at Y=%.0f, %.0f blocks, %.2f blocks/tick (~%.0fs)",
                 world.getName(), start.getX(), start.getZ(), end.getX(), end.getZ(), start.getY(), length, speed,

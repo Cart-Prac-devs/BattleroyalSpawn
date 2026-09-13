@@ -12,10 +12,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
-/**
- * Turns the configured jump key into a jump request while the player is seated.
- * Sneaking additionally dismounts through vanilla; {@link DismountListener} decides whether that is allowed.
- */
+// jump key -> requestJump. sneaking also dismounts through vanilla, DismountListener handles that side
 public final class JumpListener implements Listener {
 
     private final CartDrop plugin;
@@ -34,7 +31,7 @@ public final class JumpListener implements Listener {
         if (game.state() != GameState.BUS || !game.isAboard(player.getUniqueId())) {
             return;
         }
-        game.requestJump(player, false); // shows "doors open in Xs" itself when too early
+        game.requestJump(player, false); // handles the doors-closed message itself
     }
 
     @EventHandler

@@ -5,22 +5,14 @@ import org.bukkit.Sound;
 
 import java.util.Locale;
 
-/**
- * Parses sound names from config. Accepts the classic constant names (BLOCK_IRON_DOOR_OPEN),
- * namespaced keys (block.iron_door.open or minecraft:block.iron_door.open) and NONE.
- * <p>
- * {@code Sound.valueOf} is deprecated in 1.21, so constant names are resolved by walking the sound
- * registry: a constant name is exactly the key with dots replaced by underscores, upper-cased.
- */
+// accepts BLOCK_IRON_DOOR_OPEN, block.iron_door.open, minecraft:block.iron_door.open or NONE
+// Sound.valueOf is deprecated now so the constant names get matched against the registry keys instead
 public final class SoundUtil {
 
     private SoundUtil() {
     }
 
-    /**
-     * @return the sound, or {@code null} when the value is NONE/empty
-     * @throws IllegalArgumentException when the name matches nothing in this server version
-     */
+    // null = NONE, throws if it doesn't exist
     public static Sound parse(String raw) {
         if (raw == null) {
             throw new IllegalArgumentException("missing sound name");

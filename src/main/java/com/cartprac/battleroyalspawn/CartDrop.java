@@ -17,10 +17,6 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-/**
- * CartDrop: queue -> countdown -> flying battle cart -> elytra drop -> hand-off to the live game.
- * Owns the single tick task and wires everything together.
- */
 public final class CartDrop extends JavaPlugin {
 
     private static CartDrop instance;
@@ -31,7 +27,6 @@ public final class CartDrop extends JavaPlugin {
     private GameManager game;
     private GameLoop loop;
 
-    /** The enabled plugin instance. */
     public static CartDrop get() {
         return instance;
     }
@@ -46,7 +41,7 @@ public final class CartDrop extends JavaPlugin {
         returns.load();
 
         game = new GameManager(this);
-        game.hardReset("enable"); // removes anything a crash or /reload left behind
+        game.hardReset("enable"); // clean up leftovers from a crash / reload
 
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(new JumpListener(this), this);
@@ -88,13 +83,11 @@ public final class CartDrop extends JavaPlugin {
         instance = null;
     }
 
-    /** Re-parses the in-memory config into fresh {@link Settings} and {@link Messages}. Never throws. */
     public void applyConfig() {
         settings = new Settings(getConfig(), getLogger());
         messages = new Messages(getConfig(), getLogger());
     }
 
-    /** Reloads config.yml from disk and re-parses it. Returns the number of warnings. */
     public int reloadFromDisk() {
         reloadConfig();
         applyConfig();

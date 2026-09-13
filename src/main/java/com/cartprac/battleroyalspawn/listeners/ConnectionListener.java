@@ -11,9 +11,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.List;
 
-/**
- * Join: pending return teleport, leftover glider cleanup, queue announcement. Quit: session cleanup.
- */
 public final class ConnectionListener implements Listener {
 
     private final CartDrop plugin;
