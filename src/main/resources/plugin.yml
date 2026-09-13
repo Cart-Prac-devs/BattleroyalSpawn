@@ -1,0 +1,18 @@
+name: CartDrop
+version: '${project.version}'
+main: com.cartprac.battleroyalspawn.CartDrop
+api-version: '1.21'
+author: CartPrac
+description: Battle-royale queue, flying battle cart and elytra drop phase.
+commands:
+  battleroyale:
+    description: CartDrop battle royale commands
+    usage: /br <join|leave|start|stop|setreturn|setpath|setcenter|altitude|forcejump|announce|state|reload>
+    aliases: [br]
+permissions:
+  cartdrop.play:
+    description: Join and leave the battle royale queue
+    default: true
+  cartdrop.admin:
+    description: Manage the battle royale
+    default: op

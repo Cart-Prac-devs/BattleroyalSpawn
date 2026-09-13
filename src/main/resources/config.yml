@@ -1,0 +1,220 @@
+# =====================================================================
+#  CartDrop  -  battle-royale queue, flying battle cart and drop phase
+#  Spigot 1.21.11
+#
+#  Every value is validated on startup and on /br reload. An invalid
+#  value is reported in the console and replaced by its default; the
+#  plugin never fails to start because of this file.
+#  Colour codes use & (for example &a, &l). Placeholders are {name}.
+# =====================================================================
+
+queue:
+  # Players needed in the queue before the start countdown begins.
+  min-players: 2
+  # Maximum players on one cart. Extra queued players wait for the next match.
+  # When this many are queued the countdown is shortened to countdown-short-seconds.
+  max-players: 60
+  # Countdown length once min-players is reached.
+  countdown-seconds: 30
+  # Countdown length used once max-players is reached.
+  countdown-short-seconds: 10
+  # Seconds at which a chat message, title and sound are sent during the countdown.
+  announce-seconds: [30, 20, 10, 5, 4, 3, 2, 1]
+  # Show the clickable "join the queue" message to players when they log in.
+  announce-on-join: true
+  # Delay (ticks) after login before that message is shown.
+  announce-on-join-delay-ticks: 40
+  # While no match is running, re-broadcast the clickable message every N seconds
+  # to players who are not queued. 0 disables the repeat.
+  announce-interval-seconds: 0
+  # Where players go on /br stop, plugin disable/reload, /br leave, or when they
+  # log back in after disconnecting mid-match.
+  #   PREVIOUS  - back to wherever they stood when the cart picked them up
+  #   LOCATION  - always to return-location below
+  return-mode: PREVIOUS
+  return-location:
+    world: world
+    x: 0.5
+    y: 80.0
+    z: 0.5
+    yaw: 0.0
+    pitch: 0.0
+
+map:
+  # World the cart flies over. It must be loaded when the countdown ends.
+  world: arena
+  # Straight flight from point-a to point-b (block coordinates; Y comes from altitude).
+  point-a: { x: -400, z: -400 }
+  point-b: { x: 400, z: 400 }
+  # Random bearing mode: every match picks a random straight line through center,
+  # starting and ending radius blocks away from it. The chosen line is logged.
+  random-bearing: false
+  center: { x: 0, z: 0 }
+  radius: 500
+  # Flight altitude (Y). Clamped to the world max height minus 10.
+  altitude: 180
+
+bus:
+  # Blocks per tick. 0.6 = 12 blocks per second.
+  speed: 0.6
+  # Seconds after departure before players are allowed to jump.
+  door-open-after-seconds: 3
+  # Fraction of the path (0.1 - 1.0) at which everyone still aboard is force-dropped.
+  door-close-at: 0.9
+  # How players jump: SNEAK or RIGHT_CLICK.
+  # JUMP is accepted for compatibility but cannot be detected on Spigot (it needs
+  # Paper's PlayerInputEvent); it falls back to SNEAK with a console warning.
+  jump-key: SNEAK
+  # Velocity applied on jump (blocks per tick): forward along the flight path, and downward.
+  jump-velocity:
+    forward: 0.4
+    down: 0.2
+  # Ticks to wait after the world transfer before mounting a player on their seat.
+  mount-delay-ticks: 2
+  # Chunks kept loaded in front of and behind the cart, using plugin chunk tickets.
+  chunk-window-ahead: 4
+  chunk-window-behind: 1
+  seats:
+    # Distance between seats in a row and between rows (blocks).
+    spacing: 1.0
+    per-row: 10
+    row-spacing: 1.2
+    # Vertical offset of the seats relative to the cart origin. Tune until players sit on the floor.
+    y-offset: 0.0
+  rig:
+    # Local coordinates for everything below: x = sideways, y = up, z = forward (travel direction).
+    item:
+      # The big minecart item. The minecart item is a flat sprite; the blocks below give the 3D shape.
+      enabled: true
+      item: MINECART
+      scale: 3.0
+      offset: [0.0, 0.5, 0.0]
+      # Rotation around the vertical axis in degrees.
+      yaw: 90
+      # NONE, FIXED, GROUND, GUI, HEAD, THIRDPERSON_RIGHTHAND, THIRDPERSON_LEFTHAND, FIRSTPERSON_RIGHTHAND, FIRSTPERSON_LEFTHAND
+      display-mode: FIXED
+    banner:
+      enabled: false
+      item: WHITE_BANNER
+      scale: 1.5
+      offset: [0.0, 3.0, -4.0]
+      yaw: 0
+      display-mode: FIXED
+    # Visible cart body, one BlockDisplay per entry.
+    #   block  - any block material
+    #   offset - centre of the bottom face, local coordinates
+    #   size   - width (x), height (y), depth (z)
+    blocks:
+      - { block: DARK_OAK_PLANKS, offset: [0.0, -0.5, 0.0], size: [11.0, 0.5, 8.0] }
+      - { block: IRON_BLOCK, offset: [0.0, -0.75, 0.0], size: [11.5, 0.25, 8.5] }
+      - { block: DARK_OAK_PLANKS, offset: [-5.35, 0.0, 0.0], size: [0.3, 1.0, 8.0] }
+      - { block: DARK_OAK_PLANKS, offset: [5.35, 0.0, 0.0], size: [0.3, 1.0, 8.0] }
+      - { block: DARK_OAK_PLANKS, offset: [0.0, 0.0, 3.85], size: [11.0, 1.0, 0.3] }
+      - { block: DARK_OAK_PLANKS, offset: [0.0, 0.0, -3.85], size: [11.0, 1.0, 0.3] }
+  trail:
+    enabled: true
+    particle: CLOUD
+    count: 3
+
+drop:
+  # Safety net: a player still airborne after this many seconds is put on the ground.
+  max-drop-seconds: 60
+  # Consecutive ticks on the ground (or in water) before a landing is confirmed.
+  landing-confirm-ticks: 5
+  # Seconds of invulnerability and no-PvP after landing. 0 disables.
+  grace-seconds: 3
+  # Cancel elytra wall-crash damage while dropping.
+  cancel-wall-damage: true
+  # Clamp horizontal speed while gliding. Off by default: clamping velocity every tick
+  # can feel rubbery; tune max-horizontal before enabling.
+  glide-speed-cap:
+    enabled: false
+    max-horizontal: 1.6
+
+hud:
+  boss-bar:
+    # Colours: PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE
+    # Styles: SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
+    countdown: { title: "&eBattle Royale starts in &f{seconds}s &7({players} players)", color: YELLOW, style: SOLID }
+    bus:       { title: "&6Forced drop in &f{seconds}s  &8-  &f{aboard} &7still aboard", color: RED, style: SEGMENTED_10 }
+    drop:      { title: "&a{landed}&7/&a{total} &7landed", color: GREEN, style: SOLID }
+  action-bar: true
+  title:
+    fade-in: 0
+    stay: 20
+    fade-out: 10
+  particles:
+    jump: { particle: CLOUD, count: 20 }
+    landing: { particle: POOF, count: 15 }
+
+# Sound names from the 1.21 Sound list (for example BLOCK_IRON_DOOR_OPEN) or
+# namespaced keys (block.iron_door.open). NONE disables a cue.
+sounds:
+  queue-join: BLOCK_NOTE_BLOCK_PLING
+  countdown-tick: BLOCK_NOTE_BLOCK_HAT
+  countdown-final: BLOCK_NOTE_BLOCK_BELL
+  depart: ENTITY_ENDER_DRAGON_FLAP
+  doors-open: BLOCK_IRON_DOOR_OPEN
+  jump: ENTITY_ENDER_DRAGON_FLAP
+  glide-start: ITEM_ELYTRA_FLYING
+  landing: BLOCK_GRASS_STEP
+  forced-drop: ENTITY_GENERIC_EXPLODE
+
+messages:
+  prefix: "&8[&6BR&8] &r"
+  # Clickable queue announcement: text, then the clickable part, then its hover text.
+  announce: "&eA Battle Royale is forming! &7({queued}/{min} queued) "
+  announce-click: "&a&l[CLICK TO JOIN]"
+  announce-hover: "&7Click to join the queue"
+  announce-leave-click: "&c[click to leave]"
+  queue-joined: "&aYou joined the queue. &7({queued}/{min} needed)"
+  queue-joined-match-running: "&aYou joined the queue for the &enext&a match. &7({queued} waiting)"
+  queue-left: "&cYou left the queue."
+  queue-already: "&cYou are already in the queue."
+  queue-in-match: "&cYou are already in a match."
+  not-in-queue: "&cYou are not in the queue or in a match."
+  countdown-start: "&aEnough players! The cart leaves in &e{seconds}s&a."
+  countdown-cancel: "&cNot enough players, countdown cancelled."
+  countdown-shortened: "&eThe cart is full! Leaving in &6{seconds}s&e."
+  countdown-tick: "&eLeaving in &6{seconds}s"
+  countdown-title: "&e{seconds}"
+  countdown-subtitle: "&7Get ready"
+  world-missing: "&cThe arena world &e{world}&c is not loaded. Tell an admin."
+  bus-depart: "&aAll aboard! Hold &eSHIFT&a once the doors open to drop."
+  doors-open: "&aDoors are open! Sneak to jump."
+  doors-closed-actionbar: "&cDoors open in &e{seconds}s"
+  aboard-actionbar: "&eHold &6SHIFT&e to drop  &8-  &f{aboard} &7still on the cart"
+  drop-actionbar: "&bAltitude &f{altitude}m  &8-  &bDistance &f{distance}m"
+  jump-title: "&c&lDROP!"
+  jump-subtitle: "&7Glide to your landing spot"
+  landed-title: "&a&lLANDED"
+  landed-subtitle: "&7{grace}s of protection"
+  forced-drop: "&cEnd of the line, everyone out!"
+  live: "&aEveryone has landed. Fight!"
+  left-match: "&cYou left the match."
+  void-rescue: "&cYou fell out of the world and were lifted back up. Glide somewhere solid!"
+  safety-landed: "&eYou took too long to land and were put on the ground."
+  stopped: "&cThe match was stopped."
+  returned: "&7You were returned to where the cart picked you up."
+  no-permission: "&cYou do not have permission."
+  player-only: "&cOnly players can use this."
+  usage: "&cUsage: &7{usage}"
+  unknown: "&cUnknown subcommand. Try &7/br join&c, &7/br leave&c or &7/br state&c."
+  start-not-enough: "&cNot enough queued players ({queued}/{min}). Use &7/br start force&c to start anyway."
+  start-already: "&cA match is already running (state {state})."
+  start-now: "&aStarting the countdown ({seconds}s)."
+  start-cancelled: "&cAnother plugin prevented the match from starting."
+  start-skipped: "&aSkipping the rest of the countdown."
+  stop-nothing: "&cNothing is running."
+  stop-done: "&aMatch stopped and everything cleaned up."
+  set-return: "&aReturn location set to your position."
+  set-path: "&aPath point &e{point}&a set to &7{x}, {z}&a."
+  set-center: "&aMap centre set to &7{x}, {z}&a."
+  set-altitude: "&aFlight altitude set to &e{altitude}&a."
+  altitude-invalid: "&cAltitude must be a whole number between {min} and {max}."
+  forcejump-done: "&aForced &e{count}&a player(s) off the cart."
+  forcejump-none: "&cThat player is not on the cart."
+  player-not-found: "&cPlayer not found: &7{name}"
+  reload-refused: "&cRefusing to reload while a match is running (state {state}). Use &7/br stop&c first."
+  reload-done: "&aConfig reloaded. &7{warnings} warning(s), check the console."
+  announce-sent: "&aQueue announcement sent to &e{count}&a player(s)."
